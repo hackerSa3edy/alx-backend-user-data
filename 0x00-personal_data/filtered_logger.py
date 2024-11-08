@@ -17,8 +17,9 @@ DEFAULT_DB_USER: str = "root"
 DEFAULT_DB_PASSWORD: str = ""
 DEFAULT_DB_PORT: int = 3306
 
+
 def filter_datum(fields: List[str], redaction: str,
-                message: str, separator: str) -> str:
+                 message: str, separator: str) -> str:
     """
     Returns the log message with specified fields obfuscated.
 
@@ -30,6 +31,7 @@ def filter_datum(fields: List[str], redaction: str,
     """
     pattern = rf'({"|".join(fields)})=([^{separator}]+)'
     return re.sub(pattern, rf'\1={redaction}', message)
+
 
 def get_logger() -> logging.Logger:
     """Returns a configured logger for user data."""
@@ -43,6 +45,7 @@ def get_logger() -> logging.Logger:
     logger.addHandler(handler)
 
     return logger
+
 
 @contextmanager
 def get_db() -> MySQLConnection:
@@ -61,6 +64,7 @@ def get_db() -> MySQLConnection:
         yield db
     finally:
         db.close()
+
 
 def main() -> None:
     """Main function to demonstrate logging of user data."""
@@ -86,6 +90,7 @@ def main() -> None:
     except Exception as err:
         logger.error(f"Unexpected error: {err}")
 
+
 class RedactingFormatter(logging.Formatter):
     """Formatter class to redact sensitive information in logs."""
 
@@ -100,9 +105,14 @@ class RedactingFormatter(logging.Formatter):
 
     def format(self, record: logging.LogRecord) -> str:
         """Format the log record with sensitive information redacted."""
-        record.msg = filter_datum(self.fields, self.REDACTION,
-                                str(record.msg), self.SEPARATOR)
+        record.msg = filter_datum(
+            self.fields,
+            self.REDACTION,
+            str(record.msg),
+            self.SEPARATOR
+            )
         return super().format(record)
+
 
 if __name__ == '__main__':
     main()
